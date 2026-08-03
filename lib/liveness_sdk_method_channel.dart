@@ -34,7 +34,7 @@ class MethodChannelLivenessSdk extends LivenessSdkPlatform {
       );
 
       if (result == null) {
-        throw PlatformException(
+        throw LivenessException(
           code: 'NULL_RESULT',
           message: 'Received null result from native platform',
         );
@@ -42,9 +42,11 @@ class MethodChannelLivenessSdk extends LivenessSdkPlatform {
 
       return LivenessResult.fromMap(result);
     } on PlatformException catch (e) {
-      throw Exception('Liveness check failed: ${e.message}');
+      throw LivenessException(code: e.code, message: e.message);
+    } on LivenessException {
+      rethrow;
     } catch (e) {
-      throw Exception('Unexpected error during liveness check: $e');
+      throw LivenessException(code: 'UNEXPECTED', message: e.toString());
     }
   }
 }

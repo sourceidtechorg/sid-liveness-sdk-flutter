@@ -26,6 +26,27 @@ class LivenessUIConfig {
   }
 }
 
+/// Thrown when the liveness check fails or is cancelled.
+///
+/// [code] mirrors the native error code:
+/// - `CANCELLED` — the user backed out of the flow
+/// - `INVALID_ARGUMENTS` — sessionId/region missing
+/// - `NO_ACTIVITY` / `NO_VIEW_CONTROLLER` — no UI to present from
+/// - `IN_PROGRESS` — another liveness flow is already running (Android)
+/// - `LIVENESS_ERROR` — the detector failed (network, expired session, ...)
+class LivenessException implements Exception {
+  final String code;
+  final String? message;
+
+  LivenessException({required this.code, this.message});
+
+  /// True when the user cancelled the flow rather than failing it.
+  bool get isCancelled => code == 'CANCELLED';
+
+  @override
+  String toString() => 'LivenessException($code): ${message ?? 'no message'}';
+}
+
 /// Result from the liveness check
 class LivenessResult {
   final String status;
