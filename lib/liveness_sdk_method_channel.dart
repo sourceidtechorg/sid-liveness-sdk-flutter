@@ -22,6 +22,7 @@ class MethodChannelLivenessSdk extends LivenessSdkPlatform {
     required String sessionId,
     required String region,
     required LivenessUIConfig config,
+    LivenessApiConfig? apiConfig,
   }) async {
     try {
       final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
@@ -30,6 +31,7 @@ class MethodChannelLivenessSdk extends LivenessSdkPlatform {
           'sessionId': sessionId,
           'region': region,
           ...config.toMap(),
+          if (apiConfig != null) 'apiConfig': apiConfig.toMap(),
         },
       );
 
@@ -42,7 +44,12 @@ class MethodChannelLivenessSdk extends LivenessSdkPlatform {
 
       return LivenessResult.fromMap(result);
     } on PlatformException catch (e) {
-      throw LivenessException(code: e.code, message: e.message);
+      // Native code/userMessage/debugMessage arrive as code/message/details.
+      throw LivenessException(
+        code: e.code,
+        message: e.message,
+        debugMessage: e.details is String ? e.details as String : null,
+      );
     } on LivenessException {
       rethrow;
     } catch (e) {

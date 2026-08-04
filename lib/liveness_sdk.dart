@@ -26,25 +26,65 @@ class LivenessUIConfig {
   }
 }
 
+/// Connection details for the SourceID gateway, used to verify a liveness
+/// session's status before the capture flow launches. When provided, the
+/// native SDK only opens the camera if the session status is `CREATED`.
+class LivenessApiConfig {
+  /// Gateway API base, e.g. `https://api-rd.tailfaed50.ts.net/v1/api`.
+  final String baseUrl;
+
+  /// Value for the `x-api-key` header.
+  final String apiKey;
+
+  /// Value for the `Authorization: Bearer` header. Tokens expire — supply a
+  /// fresh one per launch.
+  final String bearerToken;
+
+  LivenessApiConfig({
+    required this.baseUrl,
+    required this.apiKey,
+    required this.bearerToken,
+  });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'baseUrl': baseUrl,
+      'apiKey': apiKey,
+      'bearerToken': bearerToken,
+    };
+  }
+}
+
 /// Thrown when the liveness check fails or is cancelled.
+///
+/// [message] is friendly, actionable text safe to show end users;
+/// [debugMessage] carries the full technical detail for logging (the native
+/// SDKs also log every failure themselves — Android: Logcat tag
+/// `LivenessSDK`; iOS: os_log subsystem `tech.sourceid.LivenessCheck`).
 ///
 /// [code] mirrors the native error code:
 /// - `CANCELLED` — the user backed out of the flow
-/// - `INVALID_ARGUMENTS` — sessionId/region missing
+/// - `CAMERA_PERMISSION_DENIED` — the camera permission was declined
+/// - `INVALID_ARGUMENTS` — sessionId missing/blank
+/// - `SESSION_NOT_USABLE` — pre-flight check: session already used or expired
+/// - `STATUS_CHECK_FAILED` — pre-flight check couldn't reach the gateway
+/// - `CONFIG_FAILED` — AWS Amplify could not be configured
+/// - `DETECTOR_FAILED` — the AWS detector failed (network, expired session, ...)
 /// - `NO_ACTIVITY` / `NO_VIEW_CONTROLLER` — no UI to present from
-/// - `IN_PROGRESS` — another liveness flow is already running (Android)
-/// - `LIVENESS_ERROR` — the detector failed (network, expired session, ...)
+/// - `IN_PROGRESS` — another liveness flow is already running
 class LivenessException implements Exception {
   final String code;
   final String? message;
+  final String? debugMessage;
 
-  LivenessException({required this.code, this.message});
+  LivenessException({required this.code, this.message, this.debugMessage});
 
   /// True when the user cancelled the flow rather than failing it.
   bool get isCancelled => code == 'CANCELLED';
 
   @override
-  String toString() => 'LivenessException($code): ${message ?? 'no message'}';
+  String toString() =>
+      'LivenessException($code): ${debugMessage ?? message ?? 'no message'}';
 }
 
 /// Result from the liveness check
@@ -75,20 +115,25 @@ class LivenessSdk {
   /// Starts the liveness check flow
   ///
   /// [sessionId] - The session ID from your backend
-  /// [region] - The AWS region (e.g., "us-east-1")
+  /// [region] - The AWS region (defaults to "us-east-1")
   /// [config] - Optional UI configuration
+  /// [apiConfig] - Optional gateway credentials; when provided the native SDK
+  /// verifies the session status first and only opens the camera if it is
+  /// `CREATED`
   ///
-  /// Returns a [LivenessResult] with the outcome
-  /// Throws an exception if the liveness check fails
+  /// Returns a [LivenessResult] with the outcome.
+  /// Throws a [LivenessException] if the liveness check fails or is cancelled.
   Future<LivenessResult> startLiveness({
     required String sessionId,
-    required String region,
+    String region = 'us-east-1',
     LivenessUIConfig? config,
+    LivenessApiConfig? apiConfig,
   }) async {
     return LivenessSdkPlatform.instance.startLiveness(
       sessionId: sessionId,
       region: region,
       config: config ?? LivenessUIConfig(),
+      apiConfig: apiConfig,
     );
   }
 }

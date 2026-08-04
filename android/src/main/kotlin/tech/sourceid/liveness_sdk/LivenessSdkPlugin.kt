@@ -7,6 +7,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import tech.sourceid.sdk.liveness.data.LivenessApiConfig
 import tech.sourceid.sdk.liveness.data.LivenessUIConfig
 import tech.sourceid.sdk.liveness.ui.LivenessSDK
 
@@ -32,14 +33,15 @@ class LivenessSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activi
 
   private fun handleStartLiveness(call: MethodCall, result: MethodChannel.Result) {
     val sessionId = call.argument<String>("sessionId")
-    val region = call.argument<String>("region")
+    val region = call.argument<String>("region") ?: "us-east-1"
     val hideBranding = call.argument<Boolean>("hideBranding") ?: false
     val customTitle = call.argument<String>("customTitle")
     val theme = call.argument<String>("theme") ?: "light"
     val primaryColorHex = call.argument<String>("primaryColorHex")
+    val apiConfigMap = call.argument<Map<String, Any?>>("apiConfig")
 
-    if (sessionId.isNullOrEmpty() || region.isNullOrEmpty()) {
-      result.error("INVALID_ARGUMENTS", "sessionId and region are required", null)
+    if (sessionId.isNullOrEmpty()) {
+      result.error("INVALID_ARGUMENTS", "sessionId is required", null)
       return
     }
 
@@ -62,12 +64,29 @@ class LivenessSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activi
       primaryColorHex = primaryColorHex
     )
 
+    val apiConfig = apiConfigMap?.let {
+      val baseUrl = it["baseUrl"] as? String
+      val apiKey = it["apiKey"] as? String
+      val bearerToken = it["bearerToken"] as? String
+      if (baseUrl.isNullOrBlank() || apiKey.isNullOrBlank() || bearerToken.isNullOrBlank()) {
+        pendingResult = null
+        result.error(
+          "INVALID_ARGUMENTS",
+          "apiConfig requires baseUrl, apiKey, and bearerToken",
+          null
+        )
+        return
+      }
+      LivenessApiConfig(baseUrl = baseUrl, apiKey = apiKey, bearerToken = bearerToken)
+    }
+
     try {
       LivenessSDK.launch(
         context = currentActivity,
         sessionId = sessionId,
         region = region,
         config = config,
+        apiConfig = apiConfig,
         onSuccess = { message ->
           pendingResult?.success(
             mapOf("status" to "success", "message" to message)
@@ -75,8 +94,9 @@ class LivenessSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activi
           pendingResult = null
         },
         onError = { error ->
-          val code = if (error.contains("cancel", ignoreCase = true)) "CANCELLED" else "LIVENESS_ERROR"
-          pendingResult?.error(code, error, null)
+          // code/userMessage/debugMessage map onto PlatformException's
+          // code/message/details on the Dart side.
+          pendingResult?.error(error.code, error.userMessage, error.debugMessage)
           pendingResult = null
         }
       )

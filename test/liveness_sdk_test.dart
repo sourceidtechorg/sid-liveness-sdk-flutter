@@ -12,7 +12,7 @@ class MockLivenessSdkPlatform
   Future<String?> getPlatformVersion() => Future.value('42');
 
   @override
-  Future<LivenessResult> startLiveness({required String sessionId, required String region, required LivenessUIConfig config}) {
+  Future<LivenessResult> startLiveness({required String sessionId, required String region, required LivenessUIConfig config, LivenessApiConfig? apiConfig}) {
     // TODO: implement startLiveness
     throw UnimplementedError();
   }

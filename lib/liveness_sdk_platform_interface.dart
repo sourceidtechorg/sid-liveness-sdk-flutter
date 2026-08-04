@@ -27,11 +27,11 @@ abstract class LivenessSdkPlatform extends PlatformInterface {
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
-  // THIS IS THE MISSING METHOD - Add this to your platform interface
   Future<LivenessResult> startLiveness({
     required String sessionId,
     required String region,
     required LivenessUIConfig config,
+    LivenessApiConfig? apiConfig,
   }) {
     throw UnimplementedError('startLiveness() has not been implemented.');
   }

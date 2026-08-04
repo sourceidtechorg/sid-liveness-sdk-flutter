@@ -134,23 +134,31 @@ Future<void> verifyUser() async {
   try {
     final result = await livenessSdk.startLiveness(
       sessionId: sessionIdFromYourBackend,
-      region: 'us-east-1',
+      // region defaults to 'us-east-1'
       config: LivenessUIConfig(
         hideBranding: false,
         customTitle: 'Verify Your Identity',
         theme: 'dark',
         primaryColorHex: '#0A84FF',
       ),
+      // Optional: verify the session status against the SourceID gateway
+      // first — the camera only opens when the status is CREATED.
+      apiConfig: LivenessApiConfig(
+        baseUrl: 'https://<your-gateway-host>/v1/api',
+        apiKey: yourApiKey,          // x-api-key header
+        bearerToken: freshUserToken, // Authorization header; tokens expire
+      ),
     );
 
     // The capture flow completed — verify the result server-side.
     print('Liveness flow finished: ${result.message}');
   } on LivenessException catch (e) {
+    debugPrint('Liveness failed $e'); // "LivenessException(CODE): debug detail"
     if (e.isCancelled) {
       // The user backed out of the flow.
     } else {
-      // Permission denied, expired session, network failure, ...
-      print('Liveness failed [${e.code}]: ${e.message}');
+      // e.message is friendly, actionable text — safe to show the user.
+      showSnackBar(e.message ?? 'Liveness check failed');
     }
   }
 }
@@ -160,9 +168,11 @@ Future<void> verifyUser() async {
 
 ## API reference
 
-### `LivenessSdk.startLiveness({sessionId, region, config})`
+### `LivenessSdk.startLiveness({sessionId, region, config, apiConfig})`
 
-Launches the full-screen liveness flow. Returns a `Future<LivenessResult>` that completes when the flow finishes. Exactly one outcome is delivered per call.
+Launches the full-screen liveness flow. Returns a `Future<LivenessResult>` that completes when the flow finishes. Exactly one outcome is delivered per call. `region` defaults to `'us-east-1'`.
+
+When `apiConfig` (`LivenessApiConfig`: `baseUrl`, `apiKey`, `bearerToken`) is provided, the native SDK first asks the gateway (`POST {baseUrl}/liveness/liveness-result`, session id as `reference`) for the session's status and only opens the camera when it is `CREATED` — used/expired sessions fail fast with `SESSION_NOT_USABLE`.
 
 ### `LivenessResult`
 
@@ -183,16 +193,23 @@ Launches the full-screen liveness flow. Returns a `Future<LivenessResult>` that 
 
 ### `LivenessException`
 
-Thrown when the flow fails or is cancelled:
+Thrown when the flow fails or is cancelled. Two message levels:
+
+* **`message`** — friendly, actionable text safe to show end users (toast/dialog).
+* **`debugMessage`** — full technical detail for logging. The native SDKs also log every failure themselves: Android under the `LivenessSDK` Logcat tag (`adb logcat -s LivenessSDK`), iOS under the `tech.sourceid.LivenessCheck` os_log subsystem.
 
 | Code | Meaning |
 | --- | --- |
 | `CANCELLED` | The user backed out of the flow (`e.isCancelled == true`) |
-| `INVALID_ARGUMENTS` | `sessionId`/`region` missing or empty |
+| `CAMERA_PERMISSION_DENIED` | The camera permission was declined |
+| `INVALID_ARGUMENTS` | `sessionId` missing or empty |
+| `SESSION_NOT_USABLE` | Pre-flight check: the session was already used or has expired |
+| `STATUS_CHECK_FAILED` | Pre-flight check couldn't reach the gateway (network/timeout) |
+| `CONFIG_FAILED` | AWS Amplify could not be configured |
+| `DETECTOR_FAILED` | The AWS detector failed — invalid/expired session, capture timeout, network, ... |
 | `NO_ACTIVITY` / `NO_VIEW_CONTROLLER` | No UI available to present the flow from |
 | `IN_PROGRESS` | Another liveness flow is already running (Android) |
 | `LAUNCH_FAILED` | The native flow could not be started (Android) |
-| `LIVENESS_ERROR` | The detector failed — network error, expired session, permission denied, Amplify configuration failure, ... |
 
 ---
 
@@ -219,8 +236,8 @@ Both native SDKs bundle SourceID's default Amplify (Cognito) configuration and i
 
 | Layer | Artifact | Current version |
 | --- | --- | --- |
-| Android native | `com.github.EQua-Dev:liveness-expo` (JitPack) | `v1.2.0` — pinned in `android/build.gradle` |
-| iOS native | `ios-single-liveness-expo` → product `LivenessCheck` (SPM) | `1.4.0` — pinned in `ios/liveness_sdk/Package.swift` |
+| Android native | `com.github.EQua-Dev:liveness-expo` (JitPack) | `v1.6.2` — pinned in `android/build.gradle` |
+| iOS native | `ios-single-liveness-expo` → product `LivenessCheck` (SPM) | `1.6.0` — pinned in `ios/liveness_sdk/Package.swift` |
 
 The native artifacts are currently published from the `EQua-Dev` mirrors. Once the official `sourceidtechorg` repositories (`sid-liveness-sdk-android`, `sid-liveness-sdk-ios`) are public, update the two pins above — the APIs are identical.
 

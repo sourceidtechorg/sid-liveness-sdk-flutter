@@ -68,13 +68,20 @@ class _MyAppState extends State<MyApp> {
       // TODO: Replace with your actual session ID from your backend
       // You should get this from your server before calling startLiveness
       final sessionId = '3bb7f90d-fe56-481c-bec4-81c2e79c6caa';
-      final region = 'us-east-1'; // Your AWS region
 
-      // Start the liveness check
+      // Optional: verify the session status against the SourceID gateway
+      // before the camera opens (only launches when status is CREATED).
+      // final apiConfig = LivenessApiConfig(
+      //   baseUrl: 'https://<your-gateway-host>/v1/api',
+      //   apiKey: '<your x-api-key>',
+      //   bearerToken: '<fresh bearer token>',
+      // );
+
+      // Start the liveness check (region defaults to us-east-1)
       final result = await _livenessSdkPlugin.startLiveness(
         sessionId: sessionId,
-        region: region,
         config: config,
+        // apiConfig: apiConfig,
       );
 
       debugPrint('liveness result: ${result.status}, message: ${result.message}');
@@ -93,6 +100,23 @@ class _MyAppState extends State<MyApp> {
       // Handle success - navigate to next screen, call your API, etc.
       if (result.isSuccess) {
         _showSuccessDialog();
+      }
+    } on LivenessException catch (e) {
+      // Full technical detail for debugging: "LivenessException(CODE): detail"
+      debugPrint('Liveness failed $e');
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        _livenessResult = e.isCancelled
+            ? '⚠️ ${e.message ?? 'Liveness check cancelled'}'
+            : '❌ ${e.message ?? 'Liveness check failed'}';
+      });
+
+      // Show the user only the friendly message; keep the debug detail in logs.
+      if (!e.isCancelled) {
+        _showErrorDialog(e.message ?? 'Liveness check failed');
       }
     } catch (e) {
       if (!mounted) return;

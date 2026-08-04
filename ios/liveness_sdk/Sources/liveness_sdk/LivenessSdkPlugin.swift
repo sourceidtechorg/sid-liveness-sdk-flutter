@@ -24,15 +24,15 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
 
   private func handleStartLiveness(call: FlutterMethodCall, result: @escaping FlutterResult) {
     guard let args = call.arguments as? [String: Any],
-          let sessionId = args["sessionId"] as? String, !sessionId.isEmpty,
-          let region = args["region"] as? String, !region.isEmpty else {
+          let sessionId = args["sessionId"] as? String, !sessionId.isEmpty else {
       result(FlutterError(
         code: "INVALID_ARGUMENTS",
-        message: "sessionId and region are required",
+        message: "sessionId is required",
         details: nil
       ))
       return
     }
+    let region = (args["region"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? "us-east-1"
 
     let config = LivenessUIConfig(
       hideBranding: args["hideBranding"] as? Bool ?? false,
@@ -40,6 +40,21 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
       theme: args["theme"] as? String ?? "light",
       primaryColorHex: args["primaryColorHex"] as? String
     )
+
+    var apiConfig: LivenessApiConfig?
+    if let apiConfigMap = args["apiConfig"] as? [String: Any] {
+      guard let baseUrl = apiConfigMap["baseUrl"] as? String, !baseUrl.isEmpty,
+            let apiKey = apiConfigMap["apiKey"] as? String, !apiKey.isEmpty,
+            let bearerToken = apiConfigMap["bearerToken"] as? String, !bearerToken.isEmpty else {
+        result(FlutterError(
+          code: "INVALID_ARGUMENTS",
+          message: "apiConfig requires baseUrl, apiKey, and bearerToken",
+          details: nil
+        ))
+        return
+      }
+      apiConfig = LivenessApiConfig(baseUrl: baseUrl, apiKey: apiKey, bearerToken: bearerToken)
+    }
 
     DispatchQueue.main.async {
       guard let rootViewController = Self.topViewController() else {
@@ -57,7 +72,8 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
       let livenessView = LivenessSDK.start(
         sessionId: sessionId,
         region: region,
-        config: config
+        config: config,
+        apiConfig: apiConfig
       ) { livenessResult in
         DispatchQueue.main.async {
           // The detector can surface multiple events; only the first outcome counts.
@@ -72,11 +88,13 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
               "message": "Liveness check completed successfully"
             ])
           case .failure(let error):
-            let description = error.localizedDescription
-            let code = description.localizedCaseInsensitiveContains("cancel")
-              ? "CANCELLED"
-              : "LIVENESS_ERROR"
-            result(FlutterError(code: code, message: description, details: nil))
+            // code/userMessage/debugMessage map onto PlatformException's
+            // code/message/details on the Dart side.
+            result(FlutterError(
+              code: error.code,
+              message: error.userMessage,
+              details: error.debugMessage
+            ))
           }
         }
       }

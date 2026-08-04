@@ -71,7 +71,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
 
     // SourceID native Liveness SDK (via JitPack)
-    implementation("com.github.EQua-Dev:liveness-expo:v1.2.0")
+    implementation("com.github.EQua-Dev:liveness-expo:v1.6.2")
 
     // Test dependencies
     testImplementation("org.jetbrains.kotlin:kotlin-test")
