@@ -1,6 +1,6 @@
 # SourceID Liveness SDK — Flutter Plugin
 
-A Flutter plugin for integrating the **SourceID Liveness Check** into your Flutter applications. It bridges the native SourceID liveness SDKs — [Android](https://github.com/EQua-Dev/liveness-expo) and [iOS](https://github.com/EQua-Dev/ios-single-liveness-expo) — which are built on [AWS Amplify Face Liveness](https://ui.docs.amplify.aws) (Amazon Rekognition Face Liveness).
+A Flutter plugin for integrating the **SourceID Liveness Check** into your Flutter applications. It bridges the native SourceID liveness SDKs — [Android](https://github.com/sourceidtechorg/sid-liveness-sdk-android) and [iOS](https://github.com/sourceidtechorg/sid-liveness-sdk-ios) — which are built on [AWS Amplify Face Liveness](https://ui.docs.amplify.aws) (Amazon Rekognition Face Liveness).
 
 ---
 
@@ -22,7 +22,7 @@ Your Flutter app
 liveness_sdk (this plugin, method channel)
       │                          │
       ▼ Android                  ▼ iOS
-liveness-expo (JitPack)     LivenessCheck (SPM/CocoaPods)
+sid-liveness-sdk-android    sid-liveness-sdk-ios
       │                          │
       ▼                          ▼
 AWS Amplify Face Liveness (Amazon Rekognition)
@@ -246,10 +246,10 @@ Both native SDKs bundle SourceID's default Amplify (Cognito) configuration and i
 
 | Layer | Artifact | Current version |
 | --- | --- | --- |
-| Android native | `com.github.EQua-Dev:liveness-expo` (JitPack) | `v1.7.1` — pinned in `android/build.gradle` |
-| iOS native | `ios-single-liveness-expo` → product `LivenessCheck` (SPM) | `1.7.1` — pinned in `ios/liveness_sdk/Package.swift` |
+| Android native | `com.github.sourceidtechorg:sid-liveness-sdk-android` (JitPack) | `v1.7.2` — pinned in `android/build.gradle` |
+| iOS native | `sid-liveness-sdk-ios` → product `LivenessCheck` (SPM) | `1.7.1` — pinned in `ios/liveness_sdk/Package.swift` |
 
-The native artifacts are currently published from the `EQua-Dev` mirrors. Once the official `sourceidtechorg` repositories (`sid-liveness-sdk-android`, `sid-liveness-sdk-ios`) are public, update the two pins above — the APIs are identical.
+The native artifacts are published from the official `sourceidtechorg` repositories. The historical `EQua-Dev` mirrors (`liveness-expo`, `ios-single-liveness-expo`) still resolve for older consumers.
 
 ---
 

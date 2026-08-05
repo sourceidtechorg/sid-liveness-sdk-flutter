@@ -11,7 +11,7 @@ let package = Package(
     ],
     dependencies: [
         .package(
-            url: "https://github.com/EQua-Dev/ios-single-liveness-expo.git",
+            url: "https://github.com/sourceidtechorg/sid-liveness-sdk-ios.git",
             from: "1.7.1"
         )
     ],
@@ -19,7 +19,7 @@ let package = Package(
         .target(
             name: "liveness_sdk",
             dependencies: [
-                .product(name: "LivenessCheck", package: "ios-single-liveness-expo")
+                .product(name: "LivenessCheck", package: "sid-liveness-sdk-ios")
             ],
             resources: [
                 .process("PrivacyInfo.xcprivacy")
