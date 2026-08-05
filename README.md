@@ -246,8 +246,8 @@ Both native SDKs bundle SourceID's default Amplify (Cognito) configuration and i
 
 | Layer | Artifact | Current version |
 | --- | --- | --- |
-| Android native | `com.github.EQua-Dev:liveness-expo` (JitPack) | `v1.7.0` — pinned in `android/build.gradle` |
-| iOS native | `ios-single-liveness-expo` → product `LivenessCheck` (SPM) | `1.7.0` — pinned in `ios/liveness_sdk/Package.swift` |
+| Android native | `com.github.EQua-Dev:liveness-expo` (JitPack) | `v1.7.1` — pinned in `android/build.gradle` |
+| iOS native | `ios-single-liveness-expo` → product `LivenessCheck` (SPM) | `1.7.1` — pinned in `ios/liveness_sdk/Package.swift` |
 
 The native artifacts are currently published from the `EQua-Dev` mirrors. Once the official `sourceidtechorg` repositories (`sid-liveness-sdk-android`, `sid-liveness-sdk-ios`) are public, update the two pins above — the APIs are identical.
 

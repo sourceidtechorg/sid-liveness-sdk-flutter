@@ -12,7 +12,7 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/EQua-Dev/ios-single-liveness-expo.git",
-            from: "1.7.0"
+            from: "1.7.1"
         )
     ],
     targets: [
