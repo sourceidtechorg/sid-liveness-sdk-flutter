@@ -172,7 +172,7 @@ Future<void> verifyUser() async {
 
 Launches the full-screen liveness flow. Returns a `Future<LivenessResult>` that completes when the flow finishes. Exactly one outcome is delivered per call. `region` defaults to `'us-east-1'`.
 
-When `apiConfig` (`LivenessApiConfig`: `baseUrl`, `apiKey`, `bearerToken`) is provided, the native SDK first asks the gateway (`POST {baseUrl}/liveness/liveness-result`, session id as `reference`) for the session's status and only opens the camera when it is `CREATED` — used/expired sessions fail fast with `SESSION_NOT_USABLE`.
+When `apiConfig` (`LivenessApiConfig`: `baseUrl`, `apiKey`, `bearerToken`) is provided, the native SDK first asks the gateway (`POST {baseUrl}/liveness/liveness-result`, session id as `reference`) for the session's status and only launches when it is `CREATED` — used/expired sessions fail fast with `SESSION_NOT_USABLE`. The check happens **before any native UI appears** on both platforms: a faulty session never opens a screen; the host app just receives the `LivenessException`.
 
 ### `LivenessResult`
 
@@ -237,7 +237,7 @@ Both native SDKs bundle SourceID's default Amplify (Cognito) configuration and i
 | Layer | Artifact | Current version |
 | --- | --- | --- |
 | Android native | `com.github.EQua-Dev:liveness-expo` (JitPack) | `v1.6.2` — pinned in `android/build.gradle` |
-| iOS native | `ios-single-liveness-expo` → product `LivenessCheck` (SPM) | `1.6.0` — pinned in `ios/liveness_sdk/Package.swift` |
+| iOS native | `ios-single-liveness-expo` → product `LivenessCheck` (SPM) | `1.6.1` — pinned in `ios/liveness_sdk/Package.swift` |
 
 The native artifacts are currently published from the `EQua-Dev` mirrors. Once the official `sourceidtechorg` repositories (`sid-liveness-sdk-android`, `sid-liveness-sdk-ios`) are public, update the two pins above — the APIs are identical.
 

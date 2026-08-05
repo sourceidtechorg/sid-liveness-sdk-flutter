@@ -56,6 +56,32 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
       apiConfig = LivenessApiConfig(baseUrl: baseUrl, apiKey: apiKey, bearerToken: bearerToken)
     }
 
+    // Validate the session before presenting ANY UI: a faulty session is
+    // reported to Dart without the camera screen ever appearing.
+    if let apiConfig {
+      Task { @MainActor in
+        if let error = await LivenessSDK.checkSession(sessionId: sessionId, apiConfig: apiConfig) {
+          result(FlutterError(
+            code: error.code,
+            message: error.userMessage,
+            details: error.debugMessage
+          ))
+          return
+        }
+        // Already validated — skip the SDK-internal re-check.
+        self.presentLiveness(sessionId: sessionId, region: region, config: config, result: result)
+      }
+    } else {
+      presentLiveness(sessionId: sessionId, region: region, config: config, result: result)
+    }
+  }
+
+  private func presentLiveness(
+    sessionId: String,
+    region: String,
+    config: LivenessUIConfig,
+    result: @escaping FlutterResult
+  ) {
     DispatchQueue.main.async {
       guard let rootViewController = Self.topViewController() else {
         result(FlutterError(
@@ -72,8 +98,7 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
       let livenessView = LivenessSDK.start(
         sessionId: sessionId,
         region: region,
-        config: config,
-        apiConfig: apiConfig
+        config: config
       ) { livenessResult in
         DispatchQueue.main.async {
           // The detector can surface multiple events; only the first outcome counts.
