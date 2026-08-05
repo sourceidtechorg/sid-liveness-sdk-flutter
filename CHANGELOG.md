@@ -1,3 +1,11 @@
+## 0.3.0
+
+Scored results in the success callback.
+
+* Consumes native SDKs Android `liveness-expo` `v1.7.0` and iOS `ios-single-liveness-expo` `1.7.0`.
+* When `apiConfig` is provided, the SDK fetches the scored result from the gateway's `liveness-result` endpoint right after the capture completes; `LivenessResult` now carries `sessionStatus` (e.g. `SUCCEEDED`), `confidence` (0–100), and `referenceImageUrl` (short-lived signed URL). A fetch failure never masks a successful capture — the fields are simply null.
+* iOS: the pre-flight session check now runs **before** any UI is presented (native `LivenessSDK.checkSession`), matching Android — a faulty session produces only the error callback with no screen shown.
+
 ## 0.2.0
 
 Structured errors, pre-flight session check, custom start page.

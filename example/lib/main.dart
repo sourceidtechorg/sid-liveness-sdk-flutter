@@ -67,7 +67,7 @@ class _MyAppState extends State<MyApp> {
 
       // TODO: Replace with your actual session ID from your backend
       // You should get this from your server before calling startLiveness
-      final sessionId = '3bb7f90d-fe56-481c-bec4-81c2e79c6caa';
+      final sessionId = 'c42d760e-1d66-4c42-9fae-1ce5be66afe3';
 
       // Optional: verify the session status against the SourceID gateway
       // before the camera opens (only launches when status is CREATED).
@@ -84,14 +84,20 @@ class _MyAppState extends State<MyApp> {
         // apiConfig: apiConfig,
       );
 
-      debugPrint('liveness result: ${result.status}, message: ${result.message}');
+      debugPrint(
+        'liveness result: ${result.status}, message: ${result.message}, '
+        'sessionStatus: ${result.sessionStatus}, confidence: ${result.confidence}',
+      );
 
       if (!mounted) return;
 
       setState(() {
         _isLoading = false;
         if (result.isSuccess) {
-          _livenessResult = '✅ Success: ${result.message}';
+          final score = result.confidence != null
+              ? ' (confidence: ${result.confidence!.toStringAsFixed(1)}%)'
+              : '';
+          _livenessResult = '✅ Success: ${result.message}$score';
         } else {
           _livenessResult = '❌ Failed: ${result.message}';
         }

@@ -150,8 +150,10 @@ Future<void> verifyUser() async {
       ),
     );
 
-    // The capture flow completed — verify the result server-side.
-    print('Liveness flow finished: ${result.message}');
+    // The capture flow completed. With apiConfig, the scored result is
+    // already included:
+    print('Liveness ${result.sessionStatus}: '
+        'confidence ${result.confidence}, image ${result.referenceImageUrl}');
   } on LivenessException catch (e) {
     debugPrint('Liveness failed $e'); // "LivenessException(CODE): debug detail"
     if (e.isCancelled) {
@@ -181,6 +183,14 @@ When `apiConfig` (`LivenessApiConfig`: `baseUrl`, `apiKey`, `bearerToken`) is pr
 | `status` | `String` | `"success"` when the capture flow completed |
 | `message` | `String` | Human-readable outcome description |
 | `isSuccess` | `bool` | Convenience getter for `status == 'success'` |
+| `sessionStatus` | `String?` | Scored gateway status (e.g. `SUCCEEDED`); populated when `apiConfig` was provided |
+| `confidence` | `double?` | Rekognition liveness confidence (0–100); populated when `apiConfig` was provided |
+| `referenceImageUrl` | `String?` | Short-lived signed URL of the captured reference image; populated when `apiConfig` was provided |
+
+When `apiConfig` is provided, the SDK calls the gateway's `liveness-result`
+endpoint right after the capture completes and fills the three fields above.
+If that fetch fails, the capture still succeeds — the fields are just null
+and your backend remains the source of truth.
 
 ### `LivenessUIConfig`
 
@@ -236,8 +246,8 @@ Both native SDKs bundle SourceID's default Amplify (Cognito) configuration and i
 
 | Layer | Artifact | Current version |
 | --- | --- | --- |
-| Android native | `com.github.EQua-Dev:liveness-expo` (JitPack) | `v1.6.2` — pinned in `android/build.gradle` |
-| iOS native | `ios-single-liveness-expo` → product `LivenessCheck` (SPM) | `1.6.1` — pinned in `ios/liveness_sdk/Package.swift` |
+| Android native | `com.github.EQua-Dev:liveness-expo` (JitPack) | `v1.7.0` — pinned in `android/build.gradle` |
+| iOS native | `ios-single-liveness-expo` → product `LivenessCheck` (SPM) | `1.7.0` — pinned in `ios/liveness_sdk/Package.swift` |
 
 The native artifacts are currently published from the `EQua-Dev` mirrors. Once the official `sourceidtechorg` repositories (`sid-liveness-sdk-android`, `sid-liveness-sdk-ios`) are public, update the two pins above — the APIs are identical.
 

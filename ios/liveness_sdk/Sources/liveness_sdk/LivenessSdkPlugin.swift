@@ -68,11 +68,12 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
           ))
           return
         }
-        // Already validated — skip the SDK-internal re-check.
-        self.presentLiveness(sessionId: sessionId, region: region, config: config, result: result)
+        // Already validated — skip the SDK-internal re-check; keep the
+        // credentials for the post-completion result fetch.
+        self.presentLiveness(sessionId: sessionId, region: region, config: config, apiConfig: apiConfig, result: result)
       }
     } else {
-      presentLiveness(sessionId: sessionId, region: region, config: config, result: result)
+      presentLiveness(sessionId: sessionId, region: region, config: config, apiConfig: nil, result: result)
     }
   }
 
@@ -80,6 +81,7 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
     sessionId: String,
     region: String,
     config: LivenessUIConfig,
+    apiConfig: LivenessApiConfig?,
     result: @escaping FlutterResult
   ) {
     DispatchQueue.main.async {
@@ -108,10 +110,23 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
 
           switch livenessResult {
           case .success:
-            result([
-              "status": "success",
-              "message": "Liveness check completed successfully"
-            ])
+            let respond: (GatewaySessionResult?) -> Void = { sessionResult in
+              result([
+                "status": "success",
+                "message": "Liveness check completed successfully",
+                "sessionStatus": sessionResult?.status as Any,
+                "confidence": sessionResult?.confidence as Any,
+                "referenceImageUrl": sessionResult?.referenceImageUrl as Any
+              ])
+            }
+            if let apiConfig {
+              // Fetch the scored result before answering Dart.
+              Task { @MainActor in
+                respond(await LivenessSDK.fetchSessionResult(sessionId: sessionId, apiConfig: apiConfig))
+              }
+            } else {
+              respond(nil)
+            }
           case .failure(let error):
             // code/userMessage/debugMessage map onto PlatformException's
             // code/message/details on the Dart side.

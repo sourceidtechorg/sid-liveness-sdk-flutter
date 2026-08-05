@@ -87,9 +87,17 @@ class LivenessSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activi
         region = region,
         config = config,
         apiConfig = apiConfig,
-        onSuccess = { message ->
+        onSuccess = { message, sessionResult ->
+          // sessionResult (scored gateway result) is present when apiConfig
+          // was provided; the SDK fetched it after the capture completed.
           pendingResult?.success(
-            mapOf("status" to "success", "message" to message)
+            mapOf(
+              "status" to "success",
+              "message" to message,
+              "sessionStatus" to sessionResult?.status,
+              "confidence" to sessionResult?.confidence,
+              "referenceImageUrl" to sessionResult?.referenceImageUrl
+            )
           )
           pendingResult = null
         },

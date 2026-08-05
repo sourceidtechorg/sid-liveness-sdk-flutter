@@ -87,14 +87,33 @@ class LivenessException implements Exception {
       'LivenessException($code): ${debugMessage ?? message ?? 'no message'}';
 }
 
-/// Result from the liveness check
+/// Result from the liveness check.
+///
+/// [sessionStatus], [confidence], and [referenceImageUrl] carry the scored
+/// gateway result and are populated when [LivenessApiConfig] was provided to
+/// `startLiveness` — the SDK fetches them from `liveness-result` right after
+/// the capture completes. They are null when no [LivenessApiConfig] was
+/// given or the post-completion fetch failed (the capture still succeeded;
+/// fetch the result from your backend in that case).
 class LivenessResult {
   final String status;
   final String message;
 
+  /// Gateway session status, e.g. `SUCCEEDED`.
+  final String? sessionStatus;
+
+  /// Rekognition confidence score (0–100) that the user is a live person.
+  final double? confidence;
+
+  /// Short-lived signed URL of the captured reference image.
+  final String? referenceImageUrl;
+
   LivenessResult({
     required this.status,
     required this.message,
+    this.sessionStatus,
+    this.confidence,
+    this.referenceImageUrl,
   });
 
   bool get isSuccess => status == 'success';
@@ -103,6 +122,9 @@ class LivenessResult {
     return LivenessResult(
       status: map['status'] as String,
       message: map['message'] as String,
+      sessionStatus: map['sessionStatus'] as String?,
+      confidence: (map['confidence'] as num?)?.toDouble(),
+      referenceImageUrl: map['referenceImageUrl'] as String?,
     );
   }
 }
