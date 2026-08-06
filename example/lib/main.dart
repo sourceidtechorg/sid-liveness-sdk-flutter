@@ -69,19 +69,15 @@ class _MyAppState extends State<MyApp> {
       // You should get this from your server before calling startLiveness
       final sessionId = 'c42d760e-1d66-4c42-9fae-1ce5be66afe3';
 
-      // Optional: verify the session status against the SourceID gateway
-      // before the camera opens (only launches when status is CREATED).
-      // final apiConfig = LivenessApiConfig(
-      //   baseUrl: 'https://<your-gateway-host>/v1/api',
-      //   apiKey: '<your x-api-key>',
-      //   bearerToken: '<fresh bearer token>',
-      // );
-
-      // Start the liveness check (region defaults to us-east-1)
+      // Start the liveness check (region defaults to us-east-1).
+      // environment enables the pre-flight session check and the scored
+      // result in the response; apiKey is the x-api-key header (omit once
+      // the gateway no longer requires it).
       final result = await _livenessSdkPlugin.startLiveness(
         sessionId: sessionId,
         config: config,
-        // apiConfig: apiConfig,
+        // environment: LivenessEnvironment.development,
+        // apiKey: '<your x-api-key>',
       );
 
       debugPrint(

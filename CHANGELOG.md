@@ -1,3 +1,10 @@
+## 0.4.0
+
+Environment-based gateway selection.
+
+* `startLiveness` takes `environment` (`LivenessEnvironment.production` / `.sandbox` / `.uat` / `.development`) instead of `apiConfig` — the SDK derives the gateway base URL internally. `LivenessApiConfig` is removed.
+* No bearer token is needed anymore; `apiKey` (the `x-api-key` header) is a plain optional parameter, kept only until the gateway stops requiring it for `liveness-result`.
+
 ## 0.3.0
 
 Scored results in the success callback.

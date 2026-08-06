@@ -7,7 +7,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import tech.sourceid.sdk.liveness.data.LivenessApiConfig
+import tech.sourceid.sdk.liveness.data.LivenessEnvironment
 import tech.sourceid.sdk.liveness.data.LivenessUIConfig
 import tech.sourceid.sdk.liveness.ui.LivenessSDK
 
@@ -38,7 +38,8 @@ class LivenessSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activi
     val customTitle = call.argument<String>("customTitle")
     val theme = call.argument<String>("theme") ?: "light"
     val primaryColorHex = call.argument<String>("primaryColorHex")
-    val apiConfigMap = call.argument<Map<String, Any?>>("apiConfig")
+    val environmentName = call.argument<String>("environment")
+    val apiKey = call.argument<String>("apiKey")
 
     if (sessionId.isNullOrEmpty()) {
       result.error("INVALID_ARGUMENTS", "sessionId is required", null)
@@ -64,20 +65,16 @@ class LivenessSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activi
       primaryColorHex = primaryColorHex
     )
 
-    val apiConfig = apiConfigMap?.let {
-      val baseUrl = it["baseUrl"] as? String
-      val apiKey = it["apiKey"] as? String
-      val bearerToken = it["bearerToken"] as? String
-      if (baseUrl.isNullOrBlank() || apiKey.isNullOrBlank() || bearerToken.isNullOrBlank()) {
+    val environment = environmentName?.let {
+      LivenessEnvironment.fromName(it) ?: run {
         pendingResult = null
         result.error(
           "INVALID_ARGUMENTS",
-          "apiConfig requires baseUrl, apiKey, and bearerToken",
+          "Unknown environment \"$it\" — use production, sandbox, uat, or development",
           null
         )
         return
       }
-      LivenessApiConfig(baseUrl = baseUrl, apiKey = apiKey, bearerToken = bearerToken)
     }
 
     try {
@@ -86,10 +83,11 @@ class LivenessSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activi
         sessionId = sessionId,
         region = region,
         config = config,
-        apiConfig = apiConfig,
+        environment = environment,
+        apiKey = apiKey,
         onSuccess = { message, sessionResult ->
-          // sessionResult (scored gateway result) is present when apiConfig
-          // was provided; the SDK fetched it after the capture completed.
+          // sessionResult (scored gateway result) is present when an
+          // environment was provided; the SDK fetched it after completion.
           pendingResult?.success(
             mapOf(
               "status" to "success",

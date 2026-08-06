@@ -41,26 +41,25 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
       primaryColorHex: args["primaryColorHex"] as? String
     )
 
-    var apiConfig: LivenessApiConfig?
-    if let apiConfigMap = args["apiConfig"] as? [String: Any] {
-      guard let baseUrl = apiConfigMap["baseUrl"] as? String, !baseUrl.isEmpty,
-            let apiKey = apiConfigMap["apiKey"] as? String, !apiKey.isEmpty,
-            let bearerToken = apiConfigMap["bearerToken"] as? String, !bearerToken.isEmpty else {
+    var environment: LivenessEnvironment?
+    if let environmentName = args["environment"] as? String {
+      guard let parsed = LivenessEnvironment.fromName(environmentName) else {
         result(FlutterError(
           code: "INVALID_ARGUMENTS",
-          message: "apiConfig requires baseUrl, apiKey, and bearerToken",
+          message: "Unknown environment \"\(environmentName)\" — use production, sandbox, uat, or development",
           details: nil
         ))
         return
       }
-      apiConfig = LivenessApiConfig(baseUrl: baseUrl, apiKey: apiKey, bearerToken: bearerToken)
+      environment = parsed
     }
+    let apiKey = args["apiKey"] as? String
 
     // Validate the session before presenting ANY UI: a faulty session is
     // reported to Dart without the camera screen ever appearing.
-    if let apiConfig {
+    if let environment {
       Task { @MainActor in
-        if let error = await LivenessSDK.checkSession(sessionId: sessionId, apiConfig: apiConfig) {
+        if let error = await LivenessSDK.checkSession(sessionId: sessionId, environment: environment, apiKey: apiKey) {
           result(FlutterError(
             code: error.code,
             message: error.userMessage,
@@ -69,11 +68,11 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
           return
         }
         // Already validated — skip the SDK-internal re-check; keep the
-        // credentials for the post-completion result fetch.
-        self.presentLiveness(sessionId: sessionId, region: region, config: config, apiConfig: apiConfig, result: result)
+        // environment for the post-completion result fetch.
+        self.presentLiveness(sessionId: sessionId, region: region, config: config, environment: environment, apiKey: apiKey, result: result)
       }
     } else {
-      presentLiveness(sessionId: sessionId, region: region, config: config, apiConfig: nil, result: result)
+      presentLiveness(sessionId: sessionId, region: region, config: config, environment: nil, apiKey: nil, result: result)
     }
   }
 
@@ -81,7 +80,8 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
     sessionId: String,
     region: String,
     config: LivenessUIConfig,
-    apiConfig: LivenessApiConfig?,
+    environment: LivenessEnvironment?,
+    apiKey: String?,
     result: @escaping FlutterResult
   ) {
     DispatchQueue.main.async {
@@ -119,10 +119,10 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
                 "referenceImageUrl": sessionResult?.referenceImageUrl as Any
               ])
             }
-            if let apiConfig {
+            if let environment {
               // Fetch the scored result before answering Dart.
               Task { @MainActor in
-                respond(await LivenessSDK.fetchSessionResult(sessionId: sessionId, apiConfig: apiConfig))
+                respond(await LivenessSDK.fetchSessionResult(sessionId: sessionId, environment: environment, apiKey: apiKey))
               }
             } else {
               respond(nil)

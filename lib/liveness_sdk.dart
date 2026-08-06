@@ -26,34 +26,9 @@ class LivenessUIConfig {
   }
 }
 
-/// Connection details for the SourceID gateway, used to verify a liveness
-/// session's status before the capture flow launches. When provided, the
-/// native SDK only opens the camera if the session status is `CREATED`.
-class LivenessApiConfig {
-  /// Gateway API base, e.g. `https://api-rd.tailfaed50.ts.net/v1/api`.
-  final String baseUrl;
-
-  /// Value for the `x-api-key` header.
-  final String apiKey;
-
-  /// Value for the `Authorization: Bearer` header. Tokens expire — supply a
-  /// fresh one per launch.
-  final String bearerToken;
-
-  LivenessApiConfig({
-    required this.baseUrl,
-    required this.apiKey,
-    required this.bearerToken,
-  });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'baseUrl': baseUrl,
-      'apiKey': apiKey,
-      'bearerToken': bearerToken,
-    };
-  }
-}
+/// SourceID gateway environment. Consumers pass only the environment — the
+/// SDK derives the gateway base URL internally.
+enum LivenessEnvironment { production, sandbox, uat, development }
 
 /// Thrown when the liveness check fails or is cancelled.
 ///
@@ -90,9 +65,9 @@ class LivenessException implements Exception {
 /// Result from the liveness check.
 ///
 /// [sessionStatus], [confidence], and [referenceImageUrl] carry the scored
-/// gateway result and are populated when [LivenessApiConfig] was provided to
-/// `startLiveness` — the SDK fetches them from `liveness-result` right after
-/// the capture completes. They are null when no [LivenessApiConfig] was
+/// gateway result and are populated when a [LivenessEnvironment] was provided
+/// to `startLiveness` — the SDK fetches them from `liveness-result` right
+/// after the capture completes. They are null when no environment was
 /// given or the post-completion fetch failed (the capture still succeeded;
 /// fetch the result from your backend in that case).
 class LivenessResult {
@@ -139,9 +114,10 @@ class LivenessSdk {
   /// [sessionId] - The session ID from your backend
   /// [region] - The AWS region (defaults to "us-east-1")
   /// [config] - Optional UI configuration
-  /// [apiConfig] - Optional gateway credentials; when provided the native SDK
-  /// verifies the session status first and only opens the camera if it is
-  /// `CREATED`
+  /// [environment] - Optional gateway environment; when provided the native
+  /// SDK verifies the session status first (camera only opens if it is
+  /// `CREATED`) and fetches the scored result after completion
+  /// [apiKey] - Optional `x-api-key` header value for the gateway calls
   ///
   /// Returns a [LivenessResult] with the outcome.
   /// Throws a [LivenessException] if the liveness check fails or is cancelled.
@@ -149,13 +125,15 @@ class LivenessSdk {
     required String sessionId,
     String region = 'us-east-1',
     LivenessUIConfig? config,
-    LivenessApiConfig? apiConfig,
+    LivenessEnvironment? environment,
+    String? apiKey,
   }) async {
     return LivenessSdkPlatform.instance.startLiveness(
       sessionId: sessionId,
       region: region,
       config: config ?? LivenessUIConfig(),
-      apiConfig: apiConfig,
+      environment: environment,
+      apiKey: apiKey,
     );
   }
 }

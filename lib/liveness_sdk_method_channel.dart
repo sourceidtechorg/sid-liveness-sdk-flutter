@@ -22,7 +22,8 @@ class MethodChannelLivenessSdk extends LivenessSdkPlatform {
     required String sessionId,
     required String region,
     required LivenessUIConfig config,
-    LivenessApiConfig? apiConfig,
+    LivenessEnvironment? environment,
+    String? apiKey,
   }) async {
     try {
       final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
@@ -31,7 +32,8 @@ class MethodChannelLivenessSdk extends LivenessSdkPlatform {
           'sessionId': sessionId,
           'region': region,
           ...config.toMap(),
-          if (apiConfig != null) 'apiConfig': apiConfig.toMap(),
+          if (environment != null) 'environment': environment.name,
+          if (apiKey != null) 'apiKey': apiKey,
         },
       );
 

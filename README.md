@@ -147,16 +147,14 @@ Future<void> verifyUser() async {
         theme: 'dark',
         primaryColorHex: '#0A84FF',
       ),
-      // Optional: verify the session status against the SourceID gateway
-      // first — the camera only opens when the status is CREATED.
-      apiConfig: LivenessApiConfig(
-        baseUrl: 'https://<your-gateway-host>/v1/api',
-        apiKey: yourApiKey,          // x-api-key header
-        bearerToken: freshUserToken, // Authorization header; tokens expire
-      ),
+      // Optional: pick the gateway environment — the SDK derives the base
+      // URL, verifies the session first (camera only opens when the status
+      // is CREATED), and fetches the scored result after completion.
+      environment: LivenessEnvironment.production,
+      apiKey: yourApiKey, // x-api-key header; omit once the gateway drops it
     );
 
-    // The capture flow completed. With apiConfig, the scored result is
+    // The capture flow completed. With environment, the scored result is
     // already included:
     print('Liveness ${result.sessionStatus}: '
         'confidence ${result.confidence}, image ${result.referenceImageUrl}');
@@ -176,11 +174,11 @@ Future<void> verifyUser() async {
 
 ## API reference
 
-### `LivenessSdk.startLiveness({sessionId, region, config, apiConfig})`
+### `LivenessSdk.startLiveness({sessionId, region, config, environment, apiKey})`
 
 Launches the full-screen liveness flow. Returns a `Future<LivenessResult>` that completes when the flow finishes. Exactly one outcome is delivered per call. `region` defaults to `'us-east-1'`.
 
-When `apiConfig` (`LivenessApiConfig`: `baseUrl`, `apiKey`, `bearerToken`) is provided, the native SDK first asks the gateway (`POST {baseUrl}/liveness/liveness-result`, session id as `reference`) for the session's status and only launches when it is `CREATED` — used/expired sessions fail fast with `SESSION_NOT_USABLE`. The check happens **before any native UI appears** on both platforms: a faulty session never opens a screen; the host app just receives the `LivenessException`.
+When `environment` (`LivenessEnvironment.production` / `.sandbox` / `.uat` / `.development`) is provided, the SDK derives the gateway base URL internally and asks `POST /liveness/liveness-result` (session id as `reference`) for the session's status, only launching when it is `CREATED` — used/expired sessions fail fast with `SESSION_NOT_USABLE`. The check happens **before any native UI appears** on both platforms: a faulty session never opens a screen; the host app just receives the `LivenessException`. `apiKey` is sent as the `x-api-key` header when provided (currently required by the gateway; no bearer token is needed).
 
 ### `LivenessResult`
 
@@ -189,11 +187,11 @@ When `apiConfig` (`LivenessApiConfig`: `baseUrl`, `apiKey`, `bearerToken`) is pr
 | `status` | `String` | `"success"` when the capture flow completed |
 | `message` | `String` | Human-readable outcome description |
 | `isSuccess` | `bool` | Convenience getter for `status == 'success'` |
-| `sessionStatus` | `String?` | Scored gateway status (e.g. `SUCCEEDED`); populated when `apiConfig` was provided |
-| `confidence` | `double?` | Rekognition liveness confidence (0–100); populated when `apiConfig` was provided |
-| `referenceImageUrl` | `String?` | Short-lived signed URL of the captured reference image; populated when `apiConfig` was provided |
+| `sessionStatus` | `String?` | Scored gateway status (e.g. `SUCCEEDED`); populated when `environment` was provided |
+| `confidence` | `double?` | Rekognition liveness confidence (0–100); populated when `environment` was provided |
+| `referenceImageUrl` | `String?` | Short-lived signed URL of the captured reference image; populated when `environment` was provided |
 
-When `apiConfig` is provided, the SDK calls the gateway's `liveness-result`
+When `environment` is provided, the SDK calls the gateway's `liveness-result`
 endpoint right after the capture completes and fills the three fields above.
 If that fetch fails, the capture still succeeds — the fields are just null
 and your backend remains the source of truth.
