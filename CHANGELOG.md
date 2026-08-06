@@ -9,7 +9,7 @@ Environment-based gateway selection.
 
 Scored results in the success callback.
 
-* Consumes native SDKs Android `sid-liveness-sdk-android` `v1.8.0` and iOS `sid-liveness-sdk-ios` `1.8.0` (official `sourceidtechorg` coordinates).
+* Consumes native SDKs Android `sid-liveness-sdk-android` `v1.8.1` and iOS `sid-liveness-sdk-ios` `1.8.1` (official `sourceidtechorg` coordinates).
 * When `apiConfig` is provided, the SDK fetches the scored result from the gateway's `liveness-result` endpoint right after the capture completes; `LivenessResult` now carries `sessionStatus` (e.g. `SUCCEEDED`), `confidence` (0–100), and `referenceImageUrl` (short-lived signed URL). A fetch failure never masks a successful capture — the fields are simply null.
 * iOS: the pre-flight session check now runs **before** any UI is presented (native `LivenessSDK.checkSession`), matching Android — a faulty session produces only the error callback with no screen shown.
 

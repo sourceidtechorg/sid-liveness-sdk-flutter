@@ -71,7 +71,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
 
     // SourceID native Liveness SDK (via JitPack)
-    implementation("com.github.sourceidtechorg:sid-liveness-sdk-android:v1.8.0")
+    implementation("com.github.sourceidtechorg:sid-liveness-sdk-android:v1.8.1")
 
     // Test dependencies
     testImplementation("org.jetbrains.kotlin:kotlin-test")

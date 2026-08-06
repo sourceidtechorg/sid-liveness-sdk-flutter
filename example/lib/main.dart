@@ -67,7 +67,7 @@ class _MyAppState extends State<MyApp> {
 
       // TODO: Replace with your actual session ID from your backend
       // You should get this from your server before calling startLiveness
-      final sessionId = 'c42d760e-1d66-4c42-9fae-1ce5be66afe3';
+      final sessionId = '8c7750d5-7a93-45e9-a00d-b1919d50ba30';
 
       // Start the liveness check (region defaults to us-east-1).
       // environment enables the pre-flight session check and the scored
@@ -75,7 +75,7 @@ class _MyAppState extends State<MyApp> {
       final result = await _livenessSdkPlugin.startLiveness(
         sessionId: sessionId,
         config: config,
-        // environment: LivenessEnvironment.development,
+        environment: LivenessEnvironment.sandbox,
       );
 
       debugPrint(

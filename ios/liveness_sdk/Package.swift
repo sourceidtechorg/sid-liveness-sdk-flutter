@@ -12,7 +12,7 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/sourceidtechorg/sid-liveness-sdk-ios.git",
-            from: "1.8.0"
+            from: "1.8.1"
         )
     ],
     targets: [
