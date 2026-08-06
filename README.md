@@ -151,7 +151,6 @@ Future<void> verifyUser() async {
       // URL, verifies the session first (camera only opens when the status
       // is CREATED), and fetches the scored result after completion.
       environment: LivenessEnvironment.production,
-      apiKey: yourApiKey, // x-api-key header; omit once the gateway drops it
     );
 
     // The capture flow completed. With environment, the scored result is
@@ -174,11 +173,11 @@ Future<void> verifyUser() async {
 
 ## API reference
 
-### `LivenessSdk.startLiveness({sessionId, region, config, environment, apiKey})`
+### `LivenessSdk.startLiveness({sessionId, region, config, environment})`
 
 Launches the full-screen liveness flow. Returns a `Future<LivenessResult>` that completes when the flow finishes. Exactly one outcome is delivered per call. `region` defaults to `'us-east-1'`.
 
-When `environment` (`LivenessEnvironment.production` / `.sandbox` / `.uat` / `.development`) is provided, the SDK derives the gateway base URL internally and asks `POST /liveness/liveness-result` (session id as `reference`) for the session's status, only launching when it is `CREATED` — used/expired sessions fail fast with `SESSION_NOT_USABLE`. The check happens **before any native UI appears** on both platforms: a faulty session never opens a screen; the host app just receives the `LivenessException`. `apiKey` is sent as the `x-api-key` header when provided (currently required by the gateway; no bearer token is needed).
+When `environment` (`LivenessEnvironment.production` / `.sandbox` / `.development`) is provided, the SDK derives the gateway base URL internally and asks the gateway's `liveness-result` endpoint (session id as `reference`) for the session's status, only launching when it is `CREATED` — used/expired sessions fail fast with `SESSION_NOT_USABLE`. The check happens **before any native UI appears** on both platforms: a faulty session never opens a screen; the host app just receives the `LivenessException`. No keys, URLs, or tokens are required — the endpoints are unauthenticated.
 
 ### `LivenessResult`
 

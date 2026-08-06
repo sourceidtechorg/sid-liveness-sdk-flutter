@@ -23,7 +23,6 @@ class MethodChannelLivenessSdk extends LivenessSdkPlatform {
     required String region,
     required LivenessUIConfig config,
     LivenessEnvironment? environment,
-    String? apiKey,
   }) async {
     try {
       final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
@@ -33,7 +32,6 @@ class MethodChannelLivenessSdk extends LivenessSdkPlatform {
           'region': region,
           ...config.toMap(),
           if (environment != null) 'environment': environment.name,
-          if (apiKey != null) 'apiKey': apiKey,
         },
       );
 

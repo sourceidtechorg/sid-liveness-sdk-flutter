@@ -46,20 +46,19 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
       guard let parsed = LivenessEnvironment.fromName(environmentName) else {
         result(FlutterError(
           code: "INVALID_ARGUMENTS",
-          message: "Unknown environment \"\(environmentName)\" — use production, sandbox, uat, or development",
+          message: "Unknown environment \"\(environmentName)\" — use production, sandbox, or development",
           details: nil
         ))
         return
       }
       environment = parsed
     }
-    let apiKey = args["apiKey"] as? String
 
     // Validate the session before presenting ANY UI: a faulty session is
     // reported to Dart without the camera screen ever appearing.
     if let environment {
       Task { @MainActor in
-        if let error = await LivenessSDK.checkSession(sessionId: sessionId, environment: environment, apiKey: apiKey) {
+        if let error = await LivenessSDK.checkSession(sessionId: sessionId, environment: environment) {
           result(FlutterError(
             code: error.code,
             message: error.userMessage,
@@ -69,10 +68,10 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
         }
         // Already validated — skip the SDK-internal re-check; keep the
         // environment for the post-completion result fetch.
-        self.presentLiveness(sessionId: sessionId, region: region, config: config, environment: environment, apiKey: apiKey, result: result)
+        self.presentLiveness(sessionId: sessionId, region: region, config: config, environment: environment, result: result)
       }
     } else {
-      presentLiveness(sessionId: sessionId, region: region, config: config, environment: nil, apiKey: nil, result: result)
+      presentLiveness(sessionId: sessionId, region: region, config: config, environment: nil, result: result)
     }
   }
 
@@ -81,7 +80,6 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
     region: String,
     config: LivenessUIConfig,
     environment: LivenessEnvironment?,
-    apiKey: String?,
     result: @escaping FlutterResult
   ) {
     DispatchQueue.main.async {
@@ -122,7 +120,7 @@ public class LivenessSdkPlugin: NSObject, FlutterPlugin {
             if let environment {
               // Fetch the scored result before answering Dart.
               Task { @MainActor in
-                respond(await LivenessSDK.fetchSessionResult(sessionId: sessionId, environment: environment, apiKey: apiKey))
+                respond(await LivenessSDK.fetchSessionResult(sessionId: sessionId, environment: environment))
               }
             } else {
               respond(nil)

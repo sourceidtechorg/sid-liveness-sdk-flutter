@@ -28,7 +28,7 @@ class LivenessUIConfig {
 
 /// SourceID gateway environment. Consumers pass only the environment — the
 /// SDK derives the gateway base URL internally.
-enum LivenessEnvironment { production, sandbox, uat, development }
+enum LivenessEnvironment { production, sandbox, development }
 
 /// Thrown when the liveness check fails or is cancelled.
 ///
@@ -117,7 +117,6 @@ class LivenessSdk {
   /// [environment] - Optional gateway environment; when provided the native
   /// SDK verifies the session status first (camera only opens if it is
   /// `CREATED`) and fetches the scored result after completion
-  /// [apiKey] - Optional `x-api-key` header value for the gateway calls
   ///
   /// Returns a [LivenessResult] with the outcome.
   /// Throws a [LivenessException] if the liveness check fails or is cancelled.
@@ -126,14 +125,12 @@ class LivenessSdk {
     String region = 'us-east-1',
     LivenessUIConfig? config,
     LivenessEnvironment? environment,
-    String? apiKey,
   }) async {
     return LivenessSdkPlatform.instance.startLiveness(
       sessionId: sessionId,
       region: region,
       config: config ?? LivenessUIConfig(),
       environment: environment,
-      apiKey: apiKey,
     );
   }
 }

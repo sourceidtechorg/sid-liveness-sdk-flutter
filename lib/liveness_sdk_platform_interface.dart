@@ -32,7 +32,6 @@ abstract class LivenessSdkPlatform extends PlatformInterface {
     required String region,
     required LivenessUIConfig config,
     LivenessEnvironment? environment,
-    String? apiKey,
   }) {
     throw UnimplementedError('startLiveness() has not been implemented.');
   }

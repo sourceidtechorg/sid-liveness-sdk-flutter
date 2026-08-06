@@ -39,7 +39,6 @@ class LivenessSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activi
     val theme = call.argument<String>("theme") ?: "light"
     val primaryColorHex = call.argument<String>("primaryColorHex")
     val environmentName = call.argument<String>("environment")
-    val apiKey = call.argument<String>("apiKey")
 
     if (sessionId.isNullOrEmpty()) {
       result.error("INVALID_ARGUMENTS", "sessionId is required", null)
@@ -70,7 +69,7 @@ class LivenessSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activi
         pendingResult = null
         result.error(
           "INVALID_ARGUMENTS",
-          "Unknown environment \"$it\" — use production, sandbox, uat, or development",
+          "Unknown environment \"$it\" — use production, sandbox, or development",
           null
         )
         return
@@ -84,7 +83,6 @@ class LivenessSdkPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Activi
         region = region,
         config = config,
         environment = environment,
-        apiKey = apiKey,
         onSuccess = { message, sessionResult ->
           // sessionResult (scored gateway result) is present when an
           // environment was provided; the SDK fetched it after completion.

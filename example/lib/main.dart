@@ -71,13 +71,11 @@ class _MyAppState extends State<MyApp> {
 
       // Start the liveness check (region defaults to us-east-1).
       // environment enables the pre-flight session check and the scored
-      // result in the response; apiKey is the x-api-key header (omit once
-      // the gateway no longer requires it).
+      // result in the response — no keys or URLs needed.
       final result = await _livenessSdkPlugin.startLiveness(
         sessionId: sessionId,
         config: config,
         // environment: LivenessEnvironment.development,
-        // apiKey: '<your x-api-key>',
       );
 
       debugPrint(
