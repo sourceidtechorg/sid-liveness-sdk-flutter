@@ -150,7 +150,7 @@ Future<void> verifyUser() async {
       // Optional: pick the gateway environment — the SDK derives the base
       // URL, verifies the session first (camera only opens when the status
       // is CREATED), and fetches the scored result after completion.
-      environment: LivenessEnvironment.production,
+      environment: LivenessEnvironment.production, // or .sandbox 
     );
 
     // The capture flow completed. With environment, the scored result is
@@ -249,8 +249,8 @@ Both native SDKs bundle SourceID's default Amplify (Cognito) configuration and i
 
 | Layer | Artifact | Current version |
 | --- | --- | --- |
-| Android native | `com.github.sourceidtechorg:sid-liveness-sdk-android` (JitPack) | `v1.7.2` — pinned in `android/build.gradle` |
-| iOS native | `sid-liveness-sdk-ios` → product `LivenessCheck` (SPM) | `1.7.1` — pinned in `ios/liveness_sdk/Package.swift` |
+| Android native | `com.github.sourceidtechorg:sid-liveness-sdk-android` (JitPack) | `v1.8.0` — pinned in `android/build.gradle` |
+| iOS native | `sid-liveness-sdk-ios` → product `LivenessCheck` (SPM) | `1.8.0` — pinned in `ios/liveness_sdk/Package.swift` |
 
 The native artifacts are published from the official `sourceidtechorg` repositories. The historical `EQua-Dev` mirrors (`liveness-expo`, `ios-single-liveness-expo`) still resolve for older consumers.
 
