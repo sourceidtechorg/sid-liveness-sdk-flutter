@@ -55,9 +55,9 @@
       }
     },
     {
-      "identity" : "ios-single-liveness-expo",
+      "identity" : "sid-liveness-sdk-ios",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/EQua-Dev/ios-single-liveness-expo.git",
+      "location" : "https://github.com/sourceidtechorg/sid-liveness-sdk-ios.git",
       "state" : {
         "revision" : "a2886cafa7f50f70fcea23ccddbee12e91a8da4c",
         "version" : "1.7.1"
